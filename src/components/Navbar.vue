@@ -48,9 +48,41 @@ import { RouterLink } from "vue-router";
 .menu a {
   color: white;
   text-decoration: none;
+  position: relative;
+  padding-bottom: 4px;
+  transition: color 0.3s;
+}
+.menu a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 0%;
+  height: 2px;
+  background: var(--gold);
+  transition: width 0.3s ease;
+}
+
+.menu a:hover {
+  color: var(--gold-soft);
+}
+
+.menu a:hover::after {
+  width: 100%;
 }
 
 .menu a.router-link-active {
-  color: #d4af37;
+  color: var(--gold);
+}
+
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .menu {
+    gap: 16px;
+  }
 }
 </style>
