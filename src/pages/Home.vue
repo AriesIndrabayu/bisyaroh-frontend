@@ -12,7 +12,50 @@
       @close="showModal = false"
     />
 
-    <section class="hero">
+    <UstadzLogoStrip
+      :ustadz="ustadzList"
+      :BASE_URL="BASE_URL"
+      @select="openUstadz"
+    />
+    <UstadzModal
+      :ustadz="selectedUstadz"
+      :show="showUstadz"
+      @close="showUstadz = false"
+      @open-book="openBook"
+      @open-class="openClass"
+    />
+
+    <BookModal
+      :book="selectedBook"
+      :show="showBook"
+      :BASE_URL="BASE_URL"
+      @close="showBook = false"
+      @read="openChapter"
+    />
+
+    <ChapterModal
+      :book="selectedChapterBook"
+      :show="showChapter"
+      @close="showChapter = false"
+      @open="openReader"
+    />
+
+    <ChapterReaderModal
+      :chapter="selectedChapter"
+      :book="selectedChapterBook"
+      :show="showReader"
+      :BASE_URL="BASE_URL"
+      @close="showReader = false"
+      @change="openReader"
+    />
+    <ClassRegistrationModal
+      :show="showClass"
+      :kelas="selectedClass"
+      :BASE_URL="BASE_URL"
+      @close="showClass = false"
+    />
+
+    <!-- <section class="hero">
       <h1>Arsip Ilmu & Pembelajaran Islam</h1>
       <p>
         Media publik untuk mengakses kajian, materi, dan dokumentasi
@@ -28,7 +71,7 @@
       <div class="grid">
         <CardKajian v-for="item in materi" :key="item.id" v-bind="item" />
       </div>
-    </section>
+    </section> -->
   </PublicLayout>
 </template>
 
@@ -39,6 +82,12 @@ import PublicLayout from "../layouts/PublicLayout.vue";
 import CardKajian from "../components/CardKajian.vue";
 import ClassSlider from "../components/ClassSlider.vue";
 import ClassDetailModal from "../components/ClassDetailModal.vue";
+import UstadzLogoStrip from "../components/UstadzLogoStrip.vue";
+import UstadzModal from "../components/UstadzModal.vue";
+import BookModal from "../components/BookModal.vue";
+import ChapterModal from "../components/ChapterModal.vue";
+import ChapterReaderModal from "../components/ChapterReaderModal.vue";
+import ClassRegistrationModal from "../components/ClassRegistrationModal.vue";
 
 const kelasList = ref([]);
 const BASE_URL = baseURL;
@@ -59,37 +108,91 @@ onMounted(async () => {
   }
 });
 
-const materi = [
-  {
-    id: 1,
-    judul: "Iman kepada Hari Akhir",
-    ustadz: "Ustadz A",
-    tanggal: "12 Jan 2026",
-    kategori: "Aqidah",
-    deskripsi:
-      "Pembahasan tentang makna iman kepada hari akhir dan dampaknya dalam kehidupan.",
-    link: "/materi/1",
-  },
-  {
-    id: 2,
-    judul: "Adab Menuntut Ilmu",
-    ustadz: "Ustadz B",
-    tanggal: "10 Jan 2026",
-    kategori: "Adab",
-    deskripsi:
-      "Bagaimana adab seorang penuntut ilmu menurut Al-Qur’an dan Sunnah.",
-    link: "/materi/2",
-  },
-  {
-    id: 3,
-    judul: "Tauhid Rububiyah",
-    ustadz: "Ustadz C",
-    tanggal: "08 Jan 2026",
-    kategori: "Tauhid",
-    deskripsi: "Memahami tauhid rububiyah sebagai pondasi utama keimanan.",
-    link: "/materi/3",
-  },
-];
+// State ustadz
+const ustadzList = ref([]);
+const showUstadz = ref(false);
+const selectedUstadz = ref(null);
+
+const openUstadz = (u) => {
+  selectedUstadz.value = u;
+  showUstadz.value = true;
+};
+
+onMounted(async () => {
+  const res = await api.get("/fe/ustadz");
+  ustadzList.value = res.data.data.data;
+});
+
+// State Kelas
+const showClass = ref(false);
+const selectedClass = ref(null);
+
+const openClass = (kelas) => {
+  console.log(kelas);
+  selectedClass.value = kelas;
+  showClass.value = true;
+};
+
+// State buku
+const showBook = ref(false);
+const selectedBook = ref(null);
+
+const openBook = (book) => {
+  selectedBook.value = book;
+  showBook.value = true;
+};
+
+// State halaqah
+const showChapter = ref(false);
+const selectedChapterBook = ref(null);
+
+const openChapter = (book) => {
+  selectedChapterBook.value = book;
+  showChapter.value = true;
+};
+
+// seleksi halaqoh
+const selectedChapter = ref(null);
+const showReader = ref(false);
+
+const openReader = (chapter) => {
+  selectedChapter.value = chapter;
+  showReader.value = true;
+};
+
+// Dummy
+
+// const materi = [
+//   {
+//     id: 1,
+//     judul: "Iman kepada Hari Akhir",
+//     ustadz: "Ustadz A",
+//     tanggal: "12 Jan 2026",
+//     kategori: "Aqidah",
+//     deskripsi:
+//       "Pembahasan tentang makna iman kepada hari akhir dan dampaknya dalam kehidupan.",
+//     link: "/materi/1",
+//   },
+//   {
+//     id: 2,
+//     judul: "Adab Menuntut Ilmu",
+//     ustadz: "Ustadz B",
+//     tanggal: "10 Jan 2026",
+//     kategori: "Adab",
+//     deskripsi:
+//       "Bagaimana adab seorang penuntut ilmu menurut Al-Qur’an dan Sunnah.",
+//     link: "/materi/2",
+//   },
+//   {
+//     id: 3,
+//     judul: "Tauhid Rububiyah",
+//     ustadz: "Ustadz C",
+//     tanggal: "08 Jan 2026",
+//     kategori: "Tauhid",
+//     deskripsi: "Memahami tauhid rububiyah sebagai pondasi utama keimanan.",
+//     link: "/materi/3",
+//   },
+// ];
 </script>
 
 <style scoped>
