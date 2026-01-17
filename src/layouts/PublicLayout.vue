@@ -27,7 +27,16 @@ onMounted(async () => {
     const headerData = data.find((item) => item.menu_frontend === "header");
 
     if (logoData) {
-      logo.value = `${baseURL}/storage/${logoData.content}`;
+      // logo.value = `${baseURL}/storage/${logoData.content}`;
+      const logoUrl = `${baseURL}/storage/${logoData.content}`;
+      logo.value = logoUrl;
+
+      // 🔥 SET FAVICON
+      const favicon = document.getElementById("app-favicon");
+      if (favicon) {
+        favicon.href = logoUrl;
+        favicon.type = "image/png"; // atau image/svg+xml
+      }
     }
 
     if (headerData) {
