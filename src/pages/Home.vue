@@ -159,40 +159,6 @@ const openReader = (chapter) => {
   selectedChapter.value = chapter;
   showReader.value = true;
 };
-
-// Dummy
-
-// const materi = [
-//   {
-//     id: 1,
-//     judul: "Iman kepada Hari Akhir",
-//     ustadz: "Ustadz A",
-//     tanggal: "12 Jan 2026",
-//     kategori: "Aqidah",
-//     deskripsi:
-//       "Pembahasan tentang makna iman kepada hari akhir dan dampaknya dalam kehidupan.",
-//     link: "/materi/1",
-//   },
-//   {
-//     id: 2,
-//     judul: "Adab Menuntut Ilmu",
-//     ustadz: "Ustadz B",
-//     tanggal: "10 Jan 2026",
-//     kategori: "Adab",
-//     deskripsi:
-//       "Bagaimana adab seorang penuntut ilmu menurut Al-Qur’an dan Sunnah.",
-//     link: "/materi/2",
-//   },
-//   {
-//     id: 3,
-//     judul: "Tauhid Rububiyah",
-//     ustadz: "Ustadz C",
-//     tanggal: "08 Jan 2026",
-//     kategori: "Tauhid",
-//     deskripsi: "Memahami tauhid rububiyah sebagai pondasi utama keimanan.",
-//     link: "/materi/3",
-//   },
-// ];
 </script>
 
 <style scoped>

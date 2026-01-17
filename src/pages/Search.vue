@@ -1,104 +1,255 @@
 <template>
   <PublicLayout>
-    <h1>Pencarian Konten</h1>
+    <!-- HERO -->
+    <section class="search-hero">
+      <h1>Pencarian Konten</h1>
 
-    <div class="filter">
-      <input v-model="keyword" type="text" placeholder="Cari judul materi..." />
+      <input
+        v-model="search"
+        placeholder="Cari ustadz, buku, atau materi..."
+        class="search-input"
+      />
+    </section>
 
-      <select v-model="kategori">
-        <option value="">Semua Kategori</option>
-        <option v-for="k in kategoriList" :key="k" :value="k">
-          {{ k }}
-        </option>
-      </select>
-    </div>
+    <!-- RESULT -->
+    <section class="search-results">
+      <!-- Loading -->
+      <div v-if="loading">Memuat...</div>
 
-    <div class="grid">
-      <CardKajian v-for="item in filteredMateri" :key="item.id" v-bind="item" />
-    </div>
+      <!-- Hasil pencarian -->
+      <template v-else-if="hasSearched">
+        <div v-if="ustadzList.length === 0" class="empty">Tidak ada hasil</div>
 
-    <p v-if="filteredMateri.length === 0" class="empty">
-      Materi tidak ditemukan
-    </p>
+        <div
+          v-for="ustadz in ustadzList"
+          :key="ustadz.id"
+          class="ustadz-card"
+          @click="openUstadz(ustadz)"
+        >
+          <!-- USTADZ -->
+          <div class="ustadz-header">
+            <img :src="`${BASE_URL}/storage/${ustadz.logo}`" />
+            <h3>{{ ustadz.name }}</h3>
+          </div>
+
+          <!-- BOOKS -->
+          <div v-if="ustadz.books?.length">
+            <strong>Buku:</strong>
+            <ul>
+              <li
+                v-for="book in ustadz.books"
+                :key="book.id"
+                class="clickable"
+                @click.stop="openBook(book)"
+              >
+                {{ book.category }}
+              </li>
+            </ul>
+          </div>
+
+          <!-- KELAS -->
+          <div v-if="ustadz.class_registrations?.length">
+            <strong>Kelas:</strong>
+            <ul>
+              <li
+                v-for="kelas in ustadz.class_registrations"
+                :key="kelas.id"
+                class="clickable"
+                @click.stop="openClass(kelas)"
+              >
+                Pembukaan Kelas
+              </li>
+            </ul>
+          </div>
+        </div>
+      </template>
+    </section>
+
+    <!-- ================= MODALS ================= -->
+
+    <!-- USTADZ -->
+    <UstadzModal
+      v-if="showUstadz"
+      :show="showUstadz"
+      :ustadz="selectedUstadz"
+      @close="showUstadz = false"
+    />
+
+    <!-- BOOK -->
+    <BookModal
+      v-if="showBook"
+      :show="showBook"
+      :book="selectedBook"
+      :BASE_URL="BASE_URL"
+      @close="showBook = false"
+      @read="openChapter"
+    />
+
+    <!-- CHAPTER LIST -->
+    <ChapterModal
+      v-if="showChapter"
+      :show="showChapter"
+      :book="selectedChapterBook"
+      @close="showChapter = false"
+      @open="openReader"
+    />
+
+    <!-- READER -->
+    <ChapterReaderModal
+      v-if="showReader"
+      :show="showReader"
+      :chapter="selectedChapter"
+      :book="selectedChapterBook"
+      :BASE_URL="BASE_URL"
+      @close="showReader = false"
+      @change="openReader"
+    />
+
+    <!-- CLASS -->
+    <ClassRegistrationModal
+      v-if="showClass"
+      :show="showClass"
+      :kelas="selectedClass"
+      :BASE_URL="BASE_URL"
+      @close="showClass = false"
+    />
   </PublicLayout>
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, watch, onMounted } from "vue";
 import PublicLayout from "../layouts/PublicLayout.vue";
-import CardKajian from "../components/CardKajian.vue";
+import api, { baseURL } from "../services/api";
 
-const keyword = ref("");
-const kategori = ref("");
+import UstadzModal from "../components/UstadzModal.vue";
+import BookModal from "../components/BookModal.vue";
+import ChapterModal from "../components/ChapterModal.vue";
+import ChapterReaderModal from "../components/ChapterReaderModal.vue";
+import ClassRegistrationModal from "../components/ClassRegistrationModal.vue";
 
-const materi = [
-  {
-    id: 1,
-    judul: "Iman kepada Hari Akhir",
-    ustadz: "Ustadz A",
-    tanggal: "12 Jan 2026",
-    kategori: "Aqidah",
-    deskripsi: "Pembahasan iman kepada hari akhir.",
-    link: "/materi/1",
-  },
-  {
-    id: 2,
-    judul: "Adab Menuntut Ilmu",
-    ustadz: "Ustadz B",
-    tanggal: "10 Jan 2026",
-    kategori: "Adab",
-    deskripsi: "Adab penuntut ilmu menurut sunnah.",
-    link: "/materi/2",
-  },
-  {
-    id: 3,
-    judul: "Tauhid Rububiyah",
-    ustadz: "Ustadz C",
-    tanggal: "08 Jan 2026",
-    kategori: "Tauhid",
-    deskripsi: "Tauhid sebagai pondasi iman.",
-    link: "/materi/3",
-  },
-];
+const BASE_URL = baseURL;
 
-const kategoriList = [...new Set(materi.map((m) => m.kategori))];
+/* ================= STATE ================= */
+const search = ref("");
+const ustadzList = ref([]);
+const loading = ref(false);
+const hasSearched = ref(false);
 
-const filteredMateri = computed(() => {
-  return materi.filter((m) => {
-    const cocokJudul = m.judul
-      .toLowerCase()
-      .includes(keyword.value.toLowerCase());
-    const cocokKategori = !kategori.value || m.kategori === kategori.value;
+// modal flags
+const showUstadz = ref(false);
+const showBook = ref(false);
+const showChapter = ref(false);
+const showReader = ref(false);
+const showClass = ref(false);
 
-    return cocokJudul && cocokKategori;
-  });
+// selected data
+const selectedUstadz = ref(null);
+const selectedBook = ref(null);
+const selectedChapterBook = ref(null);
+const selectedChapter = ref(null);
+const selectedClass = ref(null);
+
+/* ================= FETCH ================= */
+const fetchUstadz = async () => {
+  if (!search.value.trim()) return;
+
+  loading.value = true;
+  hasSearched.value = true;
+  try {
+    const res = await api.get("/fe/ustadz", {
+      params: {
+        search: search.value || undefined,
+      },
+    });
+    ustadzList.value = res.data?.data?.data || [];
+  } catch (err) {
+    console.error("Gagal memuat pencarian:", err);
+    ustadzList.value = [];
+  } finally {
+    loading.value = false;
+  }
+};
+
+// debounce search
+let timer = null;
+watch(search, () => {
+  clearTimeout(timer);
+  timer = setTimeout(fetchUstadz, 400);
 });
+
+onMounted(fetchUstadz);
+
+/* ================= ACTIONS ================= */
+const openUstadz = (ustadz) => {
+  selectedUstadz.value = ustadz;
+  showUstadz.value = true;
+};
+
+const openBook = (book) => {
+  selectedBook.value = book;
+  showBook.value = true;
+};
+
+// 🔑 Book → Chapter list
+const openChapter = (book) => {
+  selectedChapterBook.value = book;
+  showChapter.value = true;
+};
+
+// 🔑 Chapter → Reader
+const openReader = (chapter) => {
+  selectedChapter.value = chapter;
+  showReader.value = true;
+};
+
+const openClass = (kelas) => {
+  selectedClass.value = kelas;
+  showClass.value = true;
+};
 </script>
 
 <style scoped>
-.filter {
-  display: flex;
-  gap: 16px;
-  margin: 24px 0 32px;
+.search-hero {
+  text-align: center;
+  padding: 48px 16px;
 }
 
-input,
-select {
+.search-input {
+  margin-top: 20px;
   padding: 12px;
+  width: 100%;
+  max-width: 420px;
   border-radius: 8px;
   border: 1px solid #ddd;
-  width: 100%;
-  max-width: 320px;
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 28px;
+.ustadz-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  cursor: pointer;
 }
 
-.empty {
-  margin-top: 40px;
-  color: var(--muted);
+.ustadz-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ustadz-header img {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.clickable {
+  cursor: pointer;
+  color: var(--navy);
+}
+
+.clickable:hover {
+  text-decoration: underline;
 }
 </style>
