@@ -30,32 +30,37 @@
             </ul>
           </section>
 
-          <!-- ✅ Kontak Pemesanan Buku -->
+          <!-- 📦 Kontak Pemesanan Buku -->
           <section v-if="bookOrders.length" class="section">
             <h3>Kontak Pemesanan Buku</h3>
+
             <ul class="contact-list">
               <li v-for="(c, i) in bookOrders" :key="i">
-                <strong>{{ c.name }}</strong>
-                <a
-                  :href="`https://wa.me/${c.phone.replace(/^0/, '62')}`"
-                  target="_blank"
-                >
-                  {{ c.phone }}
-                </a>
-              </li>
-            </ul>
-          </section>
+                <div class="contact-info">
+                  <strong>{{ c.name }}</strong>
+                  <span class="role">{{ c.role }}</span>
+                  <span class="phone">{{ c.phone }}</span>
+                </div>
 
-          <!-- Kelas -->
-          <section v-if="ustadz.class_registrations?.length" class="section">
-            <h3>Kelas</h3>
-            <ul class="list">
-              <li
-                v-for="k in ustadz.class_registrations"
-                :key="k.id"
-                @click="$emit('open-class', k)"
-              >
-                Pembukaan Kelas Mengaji Islam
+                <div class="contact-actions">
+                  <a
+                    v-if="c.wa"
+                    :href="c.wa"
+                    target="_blank"
+                    class="btn-wa"
+                    title="Chat WhatsApp"
+                  >
+                    💬
+                  </a>
+
+                  <button
+                    class="btn-copy"
+                    title="Salin nomor"
+                    @click="copyPhone(c.phone)"
+                  >
+                    📋
+                  </button>
+                </div>
               </li>
             </ul>
           </section>
@@ -86,15 +91,31 @@ const parseHTML = (json) => {
   }
 };
 
-/* ✅ parse book_order */
+/* ✅ Parse & normalize kontak */
 const bookOrders = computed(() => {
   if (!props.ustadz?.book_order) return [];
+
   try {
-    return JSON.parse(props.ustadz.book_order);
+    return JSON.parse(props.ustadz.book_order).map((c) => ({
+      name: c.name || "Admin Buku",
+      phone: c.phone || "",
+      role: c.role || "Kontak Resmi",
+      wa: c.phone ? `https://wa.me/${c.phone.replace(/^0/, "62")}` : null,
+    }));
   } catch {
     return [];
   }
 });
+
+/* 📋 Copy nomor */
+const copyPhone = async (phone) => {
+  try {
+    await navigator.clipboard.writeText(phone);
+    alert("Nomor disalin");
+  } catch {
+    alert("Gagal menyalin");
+  }
+};
 
 watch(
   () => props.show,
@@ -207,24 +228,59 @@ watch(
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 14px;
+  padding: 14px 16px;
   background: #f9fafb;
-  border-radius: 8px;
-  margin-bottom: 8px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  gap: 12px;
 }
 
-.contact-list strong {
-  font-weight: 600;
+.contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.contact-info strong {
+  font-weight: 700;
   color: var(--navy);
 }
 
-.contact-list a {
-  color: var(--gold);
-  font-weight: 600;
-  text-decoration: none;
+.contact-info .role {
+  font-size: 12px;
+  color: #6b7280;
 }
 
-.contact-list a:hover {
-  text-decoration: underline;
+.contact-info .phone {
+  font-size: 13px;
+  color: #374151;
+}
+
+.contact-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-wa,
+.btn-copy {
+  border: none;
+  background: #e5e7eb;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-wa {
+  background: #25d366;
+  color: white;
+}
+
+.btn-wa:hover {
+  filter: brightness(0.95);
+}
+
+.btn-copy:hover {
+  background: #d1d5db;
 }
 </style>
