@@ -2,7 +2,9 @@
   <nav class="navbar">
     <div class="container">
       <div class="brand">
-        <span class="logo-text">Bisyaroh</span>
+        <img v-if="logo" :src="logo" alt="Logo" class="logo" />
+
+        <span class="logo-text">Bisyaroh {{ appTitle }}</span>
       </div>
 
       <ul class="menu">
@@ -16,6 +18,10 @@
 
 <script setup>
 import { RouterLink } from "vue-router";
+defineProps({
+  logo: String,
+  appTitle: String,
+});
 </script>
 
 <style scoped>
@@ -31,6 +37,16 @@ import { RouterLink } from "vue-router";
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo {
+  height: 36px;
 }
 
 .logo-text {
