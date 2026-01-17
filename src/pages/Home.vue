@@ -1,5 +1,17 @@
 <template>
   <PublicLayout>
+    <ClassSlider
+      :kelasList="kelasList"
+      :BASE_URL="BASE_URL"
+      @show-detail="openDetail"
+    />
+    <ClassDetailModal
+      :show="showModal"
+      :kelasId="selectedKelasId"
+      :BASE_URL="BASE_URL"
+      @close="showModal = false"
+    />
+
     <section class="hero">
       <h1>Arsip Ilmu & Pembelajaran Islam</h1>
       <p>
@@ -21,8 +33,31 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from "vue";
+import api, { baseURL } from "../services/api";
 import PublicLayout from "../layouts/PublicLayout.vue";
 import CardKajian from "../components/CardKajian.vue";
+import ClassSlider from "../components/ClassSlider.vue";
+import ClassDetailModal from "../components/ClassDetailModal.vue";
+
+const kelasList = ref([]);
+const BASE_URL = baseURL;
+const showModal = ref(false);
+const selectedKelasId = ref(null);
+
+const openDetail = (id) => {
+  selectedKelasId.value = id;
+  showModal.value = true;
+};
+
+onMounted(async () => {
+  try {
+    const res = await api.get("/fe/kelas");
+    kelasList.value = res.data.data.data;
+  } catch (err) {
+    console.error("Gagal load kelas:", err);
+  }
+});
 
 const materi = [
   {
