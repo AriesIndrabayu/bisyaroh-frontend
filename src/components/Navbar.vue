@@ -11,6 +11,7 @@
         <li><RouterLink to="/">Home</RouterLink></li>
         <li><RouterLink to="/tentang-kami">Tentang Kami</RouterLink></li>
         <li><RouterLink to="/pencarian">Pencarian Konten</RouterLink></li>
+        <li><RouterLink to="/kontak">Kontak Kami</RouterLink></li>
       </ul>
     </div>
   </nav>
